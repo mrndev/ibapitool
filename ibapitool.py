@@ -29,7 +29,7 @@ import re, os
 
 parser = argparse.ArgumentParser(
         prog="ibapitool",
-        description="tool to fetch data from the billing API. The tool uses the Utilization and Product endpoints to fetch data on daily granularity, combines the tables and outputs the result as a CSV table"
+        description="tool to fetch data from the billing API. The tool uses the Utilization and Product (prices) endpoints, joins the tables and outputs the result as a CSV table"
         )
 
 parser.add_argument("contract",
