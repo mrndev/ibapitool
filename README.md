@@ -1,6 +1,8 @@
 # ibapitool
-utility to fetch data from the Billing API
 
+Troubleshooting/monitoring utility for billing data. The utility fetches data
+from the billing API (usage and prices) and combines them to a flat csv table. The
+secript servers as a generic example how to use the API 
 ```
 usage: ibapitool [-h] [-p PERIOD] [-d DC] [-r RESOURCE] [-t TYPE] [-s SEPARATOR]
                  [-F FLOAT_FORMAT] [-D DATE_FORMAT]
