@@ -29,14 +29,30 @@ import re, os
 
 parser = argparse.ArgumentParser(
         prog="ibapitool",
-        description="tool to fetch data from the billing API"
+        description="tool to fetch data from the billing API. The tool uses the Utilization and Product endpoints to fetch data on daily granularity, combines the tables and outputs the result as a CSV table"
         )
 
-parser.add_argument("contract",help="Contract number")
-parser.add_argument("-p","--period",help="Invoicing period (e.g. 2023-07)",default="")
-parser.add_argument("-s","--separator",help="Separator for the CSV data (default='%(default)s')",default=";")
+parser.add_argument("contract",
+        help="Contract number")
+parser.add_argument("-p","--period",
+        help="Invoicing period (e.g. 2023-07)",default="")
+parser.add_argument("-d","--dc",
+        help="Return data just for the given datacenter UUID (all returned by default)")
+parser.add_argument("-r","--resource",
+        help="Return data just for the given resource UUID, such as VM or NIC (all returned by default)")
+parser.add_argument("-t","--type",
+        help="Return data just for the given resource type (all returned by default)")
+parser.add_argument("-s","--separator",
+        help="Separator for the CSV data (default='%(default)s')",default=";")
+parser.add_argument("-F","--float-format",dest="float_format",
+        help="Float format in the resulting csv file (default='%(default)s')",
+        default="%.2f")
+parser.add_argument("-D","--date-format",dest="date_format",
+        help="Date format in the resulting csv file (default='%(default)s')",
+        default="%Y-%m-%d %H:%M")
 
 args = parser.parse_args()
+
 
 # Setup Authentication - You need to user the contract owner credential when
 # using the Billing API. The Billing API does not currently does not support
@@ -64,10 +80,29 @@ auth=HTTPBasicAuth(args.user, args.password)
 # table data is easier to use for reporting and data analyzation. ## Getting
 # the Utilization Data
 
+query_params=[]
+for p in ["dc","resource","type"]:
+    a=vars(args)[p]
+    if a:
+        query_params.append(p+"="+a)
+
+if query_params:
+    query_params="?"+"&".join(query_params)
+else:
+    query_params=""
 
 # get the data from the API. Its nested JSON data
-r=requests.get(f"https://api.ionos.com/billing/{args.contract}/utilization/{args.period}",auth=auth)
+r=requests.get(f"https://api.ionos.com/billing/{args.contract}/utilization/{args.period}{query_params}",auth=auth)
 d=r.json()
+print(f"https://api.ionos.com/billing/{args.contract}/utilization/{args.period}{query_params}")
+
+# Check that we have a valid result
+if "datacenters" not in d:
+    print(d)
+    exit(1)
+if not d["datacenters"]:
+    print("no results with the given query")
+    exit(1)
 
 meters=[]
 
@@ -90,8 +125,6 @@ for f in ["from","to"]:
 
 # reorder columns and show the most important ones
 utilization=meters[["type","dc","from","to","meterId","meterDesc","region","quantity","unit"]]
-
-
 
 # now we have the data in a nice flat table **But**, there is something obvious
 # missing in the table and that is the quantity or usage in terms for dollars
@@ -133,4 +166,5 @@ combined=combined.assign(cost=combined["quantity"]*combined["price"])
 # a bit cleaner
 costs=combined[~combined.meterDesc.str.contains("S3 API")].copy()
 
-print(costs.to_csv(sep=args.separator))
+print(costs.to_csv(index=None,sep=args.separator,float_format=args.float_format,
+    date_format=args.date_format))
