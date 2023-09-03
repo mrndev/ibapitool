@@ -27,6 +27,11 @@ import pandas as pd
 import argparse
 import re, os
 
+
+# List from the API documentation
+service_types=[ "SERVER", "STORAGE", "SNAPSHOT", "NATGATEWAY", "NIC", "IP", "IP_ADDRESS",
+        "CUBETEMPLATE", "LOADBALANCER", "BACKUP", "S3", "TRAFFIC", "DB" ]
+
 parser = argparse.ArgumentParser(
         prog="ibapitool",
         description="tool to fetch data from the billing API. The tool uses the Utilization and Product (prices) endpoints, joins the tables and outputs the result as a CSV table"
@@ -36,12 +41,14 @@ parser.add_argument("contract",
         help="Contract number")
 parser.add_argument("-p","--period",
         help="Invoicing period (e.g. 2023-07)",default="")
-parser.add_argument("-d","--dc",
+parser.add_argument("--dc",
         help="Return data just for the given datacenter UUID (all returned by default)")
 parser.add_argument("-r","--resource",
         help="Return data just for the given resource UUID, such as VM or NIC (all returned by default)")
-parser.add_argument("-t","--type",
+parser.add_argument("--type", choices=service_types,
         help="Return data just for the given resource type (all returned by default)")
+parser.add_argument("-v","--verbose",action="store_true",
+        help="print some troubleshooting information")
 parser.add_argument("-s","--separator",
         help="Separator for the CSV data (default='%(default)s')",default=";")
 parser.add_argument("-F","--float-format",dest="float_format",
@@ -51,7 +58,11 @@ parser.add_argument("-D","--date-format",dest="date_format",
         help="Date format in the resulting csv file (default='%(default)s')",
         default="%Y-%m-%d %H:%M")
 
-args = parser.parse_args()
+cfg = parser.parse_args()
+
+def dbg(*args,**kwargs):
+    if cfg.verbose:
+        print(*args,**kwargs)
 
 
 # Setup Authentication - You need to user the contract owner credential when
@@ -64,15 +75,15 @@ args = parser.parse_args()
 # Q: Why not just use command line parameters? 
 # A: Because it is bad practice for credentials. The values are written in the command line history
 
-args.user = os.getenv("IONOS_USERNAME")
-args.password = os.getenv("IONOS_PASSWORD")
+cfg.user = os.getenv("IONOS_USERNAME")
+cfg.password = os.getenv("IONOS_PASSWORD")
 
 
-if args.user is None or args.password is None:
+if cfg.user is None or cfg.password is None:
     print("you need to set the contract owner credentials to environment variables IONOS_USERNAME and IONOS_PASSWORD")
     exit(1)
 
-auth=HTTPBasicAuth(args.user, args.password)
+auth=HTTPBasicAuth(cfg.user, cfg.password)
 
 
 # # Fetch and Prepare the Data - fetching here means requesting the data from the
@@ -82,7 +93,7 @@ auth=HTTPBasicAuth(args.user, args.password)
 
 query_params=[]
 for p in ["dc","resource","type"]:
-    a=vars(args)[p]
+    a=vars(cfg)[p]
     if a:
         query_params.append(p+"="+a)
 
@@ -92,9 +103,10 @@ else:
     query_params=""
 
 # get the data from the API. Its nested JSON data
-r=requests.get(f"https://api.ionos.com/billing/{args.contract}/utilization/{args.period}{query_params}",auth=auth)
+query=f"https://api.ionos.com/billing/{cfg.contract}/utilization/{cfg.period}{query_params}"
+r=requests.get(query,auth=auth)
 d=r.json()
-print(f"https://api.ionos.com/billing/{args.contract}/utilization/{args.period}{query_params}")
+dbg(query)
 
 # Check that we have a valid result
 if "datacenters" not in d:
@@ -137,7 +149,7 @@ utilization=meters[["type","dc","from","to","meterId","meterDesc","region","quan
 # contains the unit price.
 
 # Fetch the product JSON data from the API
-r=requests.get(f"https://api.ionos.com/billing/{args.contract}/products",auth=auth)
+r=requests.get(f"https://api.ionos.com/billing/{cfg.contract}/products",auth=auth)
 products=pd.DataFrame( r.json()["products"])
 
 # Again, the data is nested, but Luckily not that deep. We need to do just some
@@ -166,5 +178,5 @@ combined=combined.assign(cost=combined["quantity"]*combined["price"])
 # a bit cleaner
 costs=combined[~combined.meterDesc.str.contains("S3 API")].copy()
 
-print(costs.to_csv(index=None,sep=args.separator,float_format=args.float_format,
-    date_format=args.date_format))
+print(costs.to_csv(index=None,sep=cfg.separator,float_format=cfg.float_format,
+    date_format=cfg.date_format))
