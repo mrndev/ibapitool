@@ -71,6 +71,7 @@ def dbg(*args,**kwargs):
 
 # export IONOS_USERNAME=jane.doe@example.com
 # read -s -p "Password: " IONOS_PASSWORD
+# export IONOS_PASSWORD
 #
 # Q: Why not just use command line parameters? 
 # A: Because it is bad practice for credentials. The values are written in the command line history
