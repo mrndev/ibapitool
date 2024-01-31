@@ -1,8 +1,7 @@
 # ibapitool
 
-Troubleshooting/monitoring utility for billing data. The utility fetches data
-from the billing API (usage and prices) and combines them to a flat csv table. The
-script also serves as a generic example how to use the Billing  API.
+Tool to fetch data from the IONOS Billing API for monitoring and troublehoosting purposes. The utility fetches two sets of data, 
+ the usage and the prices and then combines them to a flat csv table. The script also serves as a generic example how to use the Billing  API.
 
 ## Example:
 Set and export the credential environment variables
