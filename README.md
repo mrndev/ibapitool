@@ -11,9 +11,12 @@ read IONOS_USERNAME
 read -s IONOS_PASSWORD
 export IONOS_USERNAME IONOS_PASSWORD
 ```
-read the data
-```
+read the data wrom IONOS APIs with the ibapitool (type and period are optional)
+```bash
 python3 ibapitool.py --period 2023-09 --type=S3 127538398
+```
+The output will be something like this
+```csv
 type;dc;from;to;meterId;meterDesc;region;quantity;unit;price;cost
 S3;S3;2023-09-02 00:00;2023-09-02 23:59;S3TI1000;1 GB S3 common traffic incoming;de/fra;0.00;1G;0.00;0.00
 S3;S3;2023-09-01 00:00;2023-09-01 23:59;S3TI1000;1 GB S3 common traffic incoming;de/fra;0.00;1G;0.00;0.00
