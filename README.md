@@ -5,6 +5,13 @@ from the billing API (usage and prices) and combines them to a flat csv table. T
 script also serves as a generic example how to use the Billing  API.
 
 ## Example:
+Set and export the credential environment variables
+```bash
+read IONOS_USERNAME
+read -s IONOS_PASSWORD
+export IONOS_USERNAME IONOS_PASSWORD
+```
+read the data
 ```
 python3 ibapitool.py --period 2023-09 --type=S3 127538398
 type;dc;from;to;meterId;meterDesc;region;quantity;unit;price;cost
