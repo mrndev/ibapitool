@@ -16,15 +16,16 @@ read the data wrom IONOS APIs with the ibapitool (type and period are optional)
 python3 ibapitool.py --period 2023-09 --type=S3 127538398
 ```
 The output will be something like this
-```csv
-type;dc;from;to;meterId;meterDesc;region;quantity;unit;price;cost
+<pre>
+<b>type;dc;from;to;meterId;meterDesc;region;quantity;unit;price;cost</b>
 S3;S3;2023-09-02 00:00;2023-09-02 23:59;S3TI1000;1 GB S3 common traffic incoming;de/fra;0.00;1G;0.00;0.00
 S3;S3;2023-09-01 00:00;2023-09-01 23:59;S3TI1000;1 GB S3 common traffic incoming;de/fra;0.00;1G;0.00;0.00
 S3;S3;2023-09-02 00:00;2023-09-02 23:59;S3TO1000;1 GB S3 common traffic outbound;de/fra;0.00;1G;0.00;0.00
 S3;S3;2023-09-01 00:00;2023-09-01 23:59;S3TO1000;1 GB S3 common traffic outbound;de/fra;0.00;1G;0.00;0.00
 S3;S3;2023-09-02 00:00;2023-09-02 23:59;S3SU1100;30d per 1GB S3 Object Storage for first 50TB;de/fra;11.52;1G*30Days;0.01;0.17
 S3;S3;2023-09-01 00:00;2023-09-01 23:59;S3SU1100;30d per 1GB S3 Object Storage for first 50TB;de/fra;11.52;1G*30Days;0.01;0.17
-```
+ </pre>
+
 
 ## Usage
 ```
